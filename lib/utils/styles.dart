@@ -12,64 +12,64 @@ class AppColors {
   static const Color secondaryText = Color(0xFFB8B8D1);
 
   // --- Colores anteriores (los mantenemos si los usas en otro lado) ---
-  static const Color primary = Color(0xFF2563EB); //
-  static const Color secondary = Color(0xFF64748B); //
-  static const Color background = Color(0xFFF8FAFC); //
-  static const Color success = Color(0xFF10B981); //
-  static const Color warning = Color(0xFFF59E0B); //
+  static const Color primary = Color(0xFF2563EB); // [cite: 123]
+  static const Color secondary = Color(0xFF64748B); // [cite: 123]
+  static const Color background = Color(0xFFF8FAFC); // [cite: 124]
+  static const Color success = Color(0xFF10B981); // [cite: 124]
+  static const Color warning = Color(0xFFF59E0B); // [cite: 124]
 }
 
-// ... (Tu clase TextStyles existente) ...
+// ... (Tu clase TextStyles existente) ... [cite: 125]
 class TextStyles {
-  static const TextStyle appBarTitle = TextStyle( //
+  static const TextStyle appBarTitle = TextStyle( // [cite: 125]
     color: Colors.white,
     fontSize: 24,
     fontWeight: FontWeight.bold,
     fontFamily: 'Poppins',
   );
-  static const TextStyle appBarSubtitle = TextStyle( //
+  static const TextStyle appBarSubtitle = TextStyle( // [cite: 126]
     color: Colors.white,
     fontSize: 14,
     fontWeight: FontWeight.normal,
     fontFamily: 'Poppins',
   );
-  static const TextStyle sectionTitle = TextStyle( //
+  static const TextStyle sectionTitle = TextStyle( // [cite: 127]
     color: AppColors.secondary,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     fontFamily: 'Poppins',
   );
-  static const TextStyle counterLabel = TextStyle( //
+  static const TextStyle counterLabel = TextStyle( // [cite: 128]
     color: Colors.black,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     fontFamily: 'Poppins',
   );
-  static const TextStyle counterPrice = TextStyle( //
+  static const TextStyle counterPrice = TextStyle( // [cite: 129]
     color: AppColors.secondary,
     fontSize: 14,
     fontWeight: FontWeight.normal,
     fontFamily: 'Poppins',
   );
-  static const TextStyle counterValue = TextStyle( //
+  static const TextStyle counterValue = TextStyle( // [cite: 130]
     color: Colors.black,
     fontSize: 18,
     fontWeight: FontWeight.bold,
     fontFamily: 'Poppins',
   );
-  static const TextStyle totalLabel = TextStyle( //
+  static const TextStyle totalLabel = TextStyle( // [cite: 131]
     color: AppColors.secondary,
     fontSize: 18,
     fontWeight: FontWeight.w600,
     fontFamily: 'Poppins',
   );
-  static const TextStyle totalAmount = TextStyle( //
+  static const TextStyle totalAmount = TextStyle( // [cite: 132]
     color: AppColors.primary,
     fontSize: 24,
     fontWeight: FontWeight.bold,
     fontFamily: 'Poppins',
   );
-  static const TextStyle buttonText = TextStyle( //
+  static const TextStyle buttonText = TextStyle( // [cite: 133]
     color: Colors.white,
     fontSize: 16,
     fontWeight: FontWeight.w600,

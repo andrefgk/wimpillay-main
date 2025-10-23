@@ -1,106 +1,178 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-// Importamos el nuevo servicio
-import 'auth_service.dart'; 
-import 'package:wimpillay_main/screens/passenger/payment_screen.dart';
-// Asumiendo que passenger_home es a donde deben ir
-import '../passenger/passenger_home.dart'; 
+import 'auth_service.dart';
+import 'package:wimpillay_main/utils/styles.dart';
+import 'package:wimpillay_main/screens/auth/email_login_screen.dart';
+import 'package:wimpillay_main/screens/auth/email_register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key}); // [cite: 22]
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState(); // [cite: 22]
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isSigningIn = false;
-  // Creamos una instancia del servicio
   final AuthService _authService = AuthService();
 
   Future<void> _signInWithGoogle() async {
+    setState(() => _isSigningIn = true); // [cite: 23, 28]
     try {
-      setState(() => _isSigningIn = true);
-
-      // Llamamos a nuestro servicio
-      final UserCredential? userCredential =
-          await _authService.signInWithGoogle();
-
-      if (userCredential == null) {
-        // El usuario canceló o hubo un error
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Inicio de sesión cancelado')),
-          );
-        }
-        return;
-      }
-
-      // Si todo salió bien, navegamos
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        // Ahora deberías navegar a un Home, no directo al pago
-        MaterialPageRoute(builder: (_) => const PassengerHome()),
-      );
+      await _authService.signInWithGoogle();
+      // El AuthGate se encargará de la navegación,
+      // así que no necesitamos Navigator.push aquí. [cite: 26]
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al iniciar sesión: $e')),
-      );
-    } finally {
-      // Aseguramos que el estado se actualice solo si el widget sigue montado
       if (mounted) {
-        setState(() => _isSigningIn = false);
+        ScaffoldMessenger.of(context).showSnackBar( // [cite: 27]
+          SnackBar(content: Text('Error al iniciar sesión: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningIn = false); // [cite: 28]
       }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // [cite: 29]
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "WIMPILLAY TRANSPORTES",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal,
-                ),
-              ),
-              const SizedBox(height: 40),
-              // Aquí deberías tener tu logo de google en assets
-              // Image.asset('assets/google_logo.png', height: 100), 
-              const Icon(Icons.directions_bus, size: 100, color: Colors.teal),
-              const SizedBox(height: 60),
-              _isSigningIn
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton.icon(
-                      // Icono de Google (ejemplo)
-                      icon: const Icon(Icons.login), 
-                      label: const Text(
-                        'Iniciar sesión con Google',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      style: ElevatedButton.styleFrom(
+      body: Stack(
+        children: [
+          // --- Fondo con formas geométricas (como tu ejemplo) ---
+          _buildGeometricShape(
+            color: AppColors.primaryGreen.withOpacity(0.3),
+            top: -80,
+            left: -100,
+            size: 250,
+          ),
+          _buildGeometricShape(
+            color: AppColors.accentOrange.withOpacity(0.4),
+            bottom: -120,
+            right: -150,
+            size: 400,
+          ),
+          _buildGeometricShape(
+            color: AppColors.accentOrange.withOpacity(0.5),
+            top: 150,
+            right: -50,
+            size: 150,
+          ),
+          // --- Fin del fondo ---
+
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo
+                  const Icon(
+                    Icons.directions_bus_filled,
+                    size: 100,
+                    color: AppColors.primaryGreen,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "WIMPILLAY",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.lightText,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const Text(
+                    "TRANSPORTES", // [cite: 30]
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.secondaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+
+                  // --- Botón de Iniciar Sesión con Correo ---
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EmailLoginScreen(),
+                          ),
+                        );
+                      },
+                      // Estilo del tema (verde)
+                      child: const Text('Iniciar Sesión con Correo'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- Botón de Google ---
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.g_mobiledata, size: 28), // [cite: 33]
+                      label: const Text('Iniciar sesión con Google'), // [cite: 33]
+                      style: ElevatedButton.styleFrom( // [cite: 34, 35]
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Colors.grey),
-                        ),
                       ),
-                      onPressed: _signInWithGoogle,
+                      onPressed: _isSigningIn ? null : _signInWithGoogle, // [cite: 37]
                     ),
-            ],
+                  ),
+                  const SizedBox(height: 40),
+
+                  // --- Botón de Registrarse ---
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const EmailRegisterScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      '¿No tienes una cuenta? Regístrate',
+                      style: TextStyle(color: AppColors.secondaryText),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
+          if (_isSigningIn)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()), // [cite: 32]
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Helper para las formas del fondo
+  Widget _buildGeometricShape({
+    required Color color,
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    required double size,
+  }) {
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
         ),
       ),
     );

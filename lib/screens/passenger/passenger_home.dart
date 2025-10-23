@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// Importamos los servicios y modelos necesarios
 import 'package:wimpillay_main/models/ticket_model.dart';
 import 'package:wimpillay_main/services/ticket_service.dart';
 import 'package:wimpillay_main/screens/passenger/ticket_screen.dart';
-import 'package:wimpillay_main/screens/auth/login_screen.dart'; // Para el logout
+// ¡IMPORTAMOS AUTH_SERVICE!
+import 'package:wimpillay_main/screens/auth/auth_service.dart';
 
-// Convertimos a StatefulWidget para manejar los contadores
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});
 
@@ -15,15 +14,12 @@ class PassengerHome extends StatefulWidget {
 }
 
 class _PassengerHomeState extends State<PassengerHome> {
-  // --- Lógica movida desde payment_screen.dart ---
   int adult = 1;
   int university = 0;
   int school = 0;
-
   final double adultPrice = 1.0;
   final double universityPrice = 0.5;
   final double schoolPrice = 0.5;
-
   bool _isProcessing = false;
 
   double get total =>
@@ -32,16 +28,16 @@ class _PassengerHomeState extends State<PassengerHome> {
   final TicketService _ticketService = TicketService();
   final user = FirebaseAuth.instance.currentUser;
 
+  // ¡INSTANCIA DE AUTHSERVICE!
+  final AuthService _authService = AuthService();
+
   Future<void> _confirmAndCreateTicket() async {
-    // Evitar crear tickets de S/ 0.00
     if (total <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debe seleccionar al menos un pasajero')),
       );
       return;
     }
-
-    // Asegurarnos que el usuario esté logueado
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error: No se encontró usuario')),
@@ -52,7 +48,7 @@ class _PassengerHomeState extends State<PassengerHome> {
     setState(() => _isProcessing = true);
     try {
       final ticket = await _ticketService.createTicket(
-        userId: user!.uid, // ¡Enlazamos el ticket al usuario!
+        userId: user!.uid,
         adultCount: adult,
         universityCount: university,
         schoolCount: school,
@@ -60,21 +56,17 @@ class _PassengerHomeState extends State<PassengerHome> {
       );
 
       if (!mounted) return;
-
-      // Navegamos a la pantalla del ticket (que ahora mostrará el QR)
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => TicketScreen(ticket: ticket),
         ),
       );
-      // Reseteamos contadores después de comprar
       setState(() {
         adult = 1;
         university = 0;
         school = 0;
       });
-
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -84,7 +76,6 @@ class _PassengerHomeState extends State<PassengerHome> {
     }
   }
 
-  // --- Widget del contador (movido desde payment_screen.dart) ---
   Widget _buildCounter({
     required String label,
     required double price,
@@ -96,6 +87,7 @@ class _PassengerHomeState extends State<PassengerHome> {
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 10),
+      // ... (El resto del widget de contador no cambia)
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -135,32 +127,32 @@ class _PassengerHomeState extends State<PassengerHome> {
       ),
     );
   }
-  // --- Fin de la lógica movida ---
 
+  // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
   void _signOut() async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    // Simplemente llamamos al servicio de cerrar sesión.
+    // AuthGate se encargará de la navegación.
+    await _authService.signOut();
   }
+  // --- FIN DE LA CORRECIÓN ---
 
   @override
   Widget build(BuildContext context) {
+    // Usamos el Tema Oscuro que definimos
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F6F9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Comprar Ticket'),
-        backgroundColor: Colors.teal,
-        elevation: 2,
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        elevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',
-            onPressed: _signOut,
+            onPressed: _signOut, // Llama a la nueva función _signOut
           )
         ],
       ),
@@ -171,26 +163,31 @@ class _PassengerHomeState extends State<PassengerHome> {
           children: [
             Text(
               'Bienvenido, ${user?.displayName ?? 'Pasajero'}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(color: theme.textTheme.bodyLarge?.color),
             ),
             const SizedBox(height: 12),
-            const Text('Selecciona la cantidad de pasajeros:'),
+            Text(
+              'Selecciona la cantidad de pasajeros:',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(color: theme.textTheme.bodySmall?.color),
+            ),
             const SizedBox(height: 12),
             
-            // --- Widgets de contador insertados ---
-            _buildCounter(
+            // --- Adaptamos los contadores al tema oscuro ---
+            // (Esta parte es visual, la lógica es la misma)
+            _buildCounterDark(
               label: 'Adultos',
               price: adultPrice,
               value: adult,
               onAdd: () => setState(() => adult++),
               onRemove: () {
-                // Aseguramos que el total no sea 0 por defecto
                 if (adult > 0 || (university + school) > 0) {
                   if (adult > 0) setState(() => adult--);
                 }
               },
             ),
-            _buildCounter(
+            _buildCounterDark(
               label: 'Universitarios',
               price: universityPrice,
               value: university,
@@ -199,7 +196,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                 if (university > 0) setState(() => university--);
               },
             ),
-            _buildCounter(
+            _buildCounterDark(
               label: 'Escolares',
               price: schoolPrice,
               value: school,
@@ -212,26 +209,26 @@ class _PassengerHomeState extends State<PassengerHome> {
 
             const SizedBox(height: 20),
             
-            // --- Total (movido de payment_screen.dart) ---
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               decoration: BoxDecoration(
-                color: Colors.teal.shade100,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Total a pagar:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(color: theme.textTheme.bodyLarge?.color),
                   ),
                   Text(
                     'S/. ${total.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal,
+                      color: theme.primaryColor,
                     ),
                   ),
                 ],
@@ -239,29 +236,79 @@ class _PassengerHomeState extends State<PassengerHome> {
             ),
             const Spacer(),
             
-            // --- Botón de pago (movido de payment_screen.dart) ---
             _isProcessing
                 ? const Center(child: CircularProgressIndicator())
                 : SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.check_circle_outline, size: 26),
-                      // Ahora llama a la función que está en este mismo archivo
-                      onPressed: _confirmAndCreateTicket, 
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 4,
-                      ),
+                      onPressed: _confirmAndCreateTicket,
+                      style: theme.elevatedButtonTheme.style,
                       label: const Text(
                         'CONFIRMAR PAGO',
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
                   ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget de contador adaptado al tema oscuro
+  Widget _buildCounterDark({
+    required String label,
+    required double price,
+    required int value,
+    required VoidCallback onAdd,
+    required VoidCallback onRemove,
+  }) {
+    final theme = Theme.of(context);
+    return Card(
+      color: theme.cardColor,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.bodyLarge?.color)),
+                Text('S/. ${price.toStringAsFixed(2)}',
+                    style:
+                        TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 14)),
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline,
+                      color: Colors.red, size: 28),
+                  onPressed: onRemove,
+                ),
+                Text(
+                  '$value',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.bodyLarge?.color),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline,
+                      color: Colors.green, size: 28),
+                  onPressed: onAdd,
+                ),
+              ],
+            ),
           ],
         ),
       ),
