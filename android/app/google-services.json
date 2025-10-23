@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "105431920883",
+    "project_id": "wimpillay-rtu",
+    "storage_bucket": "wimpillay-rtu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105431920883:android:629b1fbf689e8390eac786",
+        "android_client_info": {
+          "package_name": "com.example.wimpillay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "105431920883-g01jf30ie1ga7m580olcsrtav31d3edv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.wimpillay",
+            "certificate_hash": "c817747904fdc1b02845acf86ff0db97eb648998"
+          }
+        },
+        {
+          "client_id": "105431920883-jihju2rmrmj6vogecjod0sbnns4k0pni.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.wimpillay",
+            "certificate_hash": "a47e9949e02d78066a5c89d07661bff14dc503bb"
+          }
+        },
+        {
+          "client_id": "105431920883-01pods2l5nuecqqgp4p7ael4le453kfh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdd3IgIFEReGlteAy9-XVWkwzyYTT-5v4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "105431920883-01pods2l5nuecqqgp4p7ael4le453kfh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "105431920883-b0s4u5derirmbifhdibhb1qn9sb6urfr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wimpillay"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
