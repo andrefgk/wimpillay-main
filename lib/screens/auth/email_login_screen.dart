@@ -28,22 +28,16 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
     if (!mounted) return;
     
-    // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
     if (userCredential != null) {
-      // Si el login fue exitoso, AuthGate ya nos llevó al Home.
-      // Cerramos todas las pantallas de autenticación (Login y EmailLogin)
-      // para revelar el Home que está debajo.
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      // Si falló, mostramos el error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Correo o contraseña incorrectos.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error, // Usar el color de error del tema
         ),
       );
     }
-    // --- FIN DE LA CORRECCIÓN ---
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -59,10 +53,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Obtener el tema
     return Scaffold(
       appBar: AppBar(
         title: const Text('Iniciar Sesión'),
-        backgroundColor: AppColors.darkBackground,
+        backgroundColor: theme.appBarTheme.backgroundColor, // Usar el color del AppBar del tema
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -72,18 +67,16 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Bienvenido de vuelta',
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: theme.textTheme.headlineSmall?.copyWith( // Usar estilos del tema
                     fontWeight: FontWeight.bold,
-                    color: AppColors.lightText,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Ingresa tus credenciales',
-                  style: TextStyle(color: AppColors.secondaryText),
+                  style: theme.textTheme.bodySmall, // Texto secundario
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
@@ -95,6 +88,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) =>
                       value!.isEmpty ? 'Ingresa un correo' : null,
+                  style: theme.textTheme.bodyMedium, // Estilo del texto que se escribe
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
@@ -102,17 +96,17 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Contraseña',
                     prefixIcon: Icon(Icons.lock_outline),
-                    // Aquí iría la lógica para ocultar/mostrar contraseña
                   ),
                   obscureText: true,
                   validator: (value) =>
                       value!.isEmpty ? 'Ingresa una contraseña' : null,
+                  style: theme.textTheme.bodyMedium, // Estilo del texto que se escribe
                 ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
                   child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreenLight))
                       : ElevatedButton(
                           onPressed: _login,
                           child: const Text('INGRESAR'),

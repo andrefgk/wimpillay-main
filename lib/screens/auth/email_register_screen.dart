@@ -46,7 +46,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         barrierDismissible: false, // No se puede cerrar tocando fuera
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            backgroundColor: AppColors.lightCard,
+            backgroundColor: AppColors.lightText,
             title: const Text(
               "¡Cuenta Creada!",
               style: TextStyle(color: AppColors.lightText),
@@ -58,7 +58,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
             actions: [
               TextButton(
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryGreen,
+                  foregroundColor: AppColors.primaryGreenDark,
                 ),
                 child: const Text("Iniciar Sesión"),
                 onPressed: () {

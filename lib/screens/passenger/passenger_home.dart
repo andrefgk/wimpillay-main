@@ -14,7 +14,7 @@ class PassengerHome extends StatefulWidget {
 }
 
 class _PassengerHomeState extends State<PassengerHome> {
-  int adult = 1;
+  int adult = 0;
   int university = 0;
   int school = 0;
   final double adultPrice = 1.0;
