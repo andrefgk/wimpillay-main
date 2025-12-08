@@ -2,11 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wimpillay_main/models/ticket_model.dart';
 import 'package:wimpillay_main/services/firebase_service.dart';
 
+// Enum para saber el resultado de la validación
+enum TicketValidationStatus { valid, alreadyUsed, notFound, error }
+
+// Clase auxiliar para devolver el resultado y el ticket (si existe)
+class ValidationResult {
+  final TicketValidationStatus status;
+  final TicketModel? ticket;
+  final String message;
+
+  ValidationResult({required this.status, this.ticket, required this.message});
+}
+
 class TicketService {
   final FirebaseService _firebaseService = FirebaseService();
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  // Tu método existente para CREAR tickets
   Future<TicketModel> createTicket({
-    required String userId, // ¡Requerimos el userId!
+    required String userId,
     required int adultCount,
     required int universityCount,
     required int schoolCount,
@@ -19,12 +33,82 @@ class TicketService {
       schoolCount: schoolCount,
       totalAmount: totalAmount,
       purchaseDate: Timestamp.now(),
-      qrCode: '', // Se genera y actualiza en FirebaseService
+      qrCode: '',
       isUsed: false,
       usedAt: null,
     );
-
-    // saveTicket ahora devuelve el ticket actualizado con ID y QR
     return await _firebaseService.saveTicket(ticket);
+  }
+
+  // --- NUEVA LÓGICA DE VALIDACIÓN ---
+  Future<ValidationResult> validateTicket(String qrCodeData) async {
+    try {
+      // 1. Validar formato básico del QR
+      // Se espera: "TKT:{ticketId}::USER:{userId}"
+      if (!qrCodeData.startsWith("TKT:")) {
+        return ValidationResult(
+          status: TicketValidationStatus.error, 
+          message: "Formato de QR inválido o no pertenece a Wimpillay"
+        );
+      }
+
+      // 2. Extraer el ID del ticket
+      // Ejemplo: de "TKT:QtRvn...::USER:jkl..." sacamos "QtRvn..."
+      final parts = qrCodeData.split("::");
+      if (parts.isEmpty) {
+        return ValidationResult(status: TicketValidationStatus.error, message: "Código QR corrupto");
+      }
+      
+      final ticketIdPart = parts[0]; // "TKT:QtRvn..."
+      final ticketId = ticketIdPart.split(":")[1]; // "QtRvn..."
+
+      // 3. Referencia al documento en Firestore
+      final docRef = _db.collection('tickets').doc(ticketId);
+
+      // 4. Usamos una transacción para asegurar integridad
+      // Esto evita que dos choferes escaneen el mismo ticket al mismo milisegundo
+      return await _db.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+
+        if (!snapshot.exists) {
+          return ValidationResult(
+              status: TicketValidationStatus.notFound, 
+              message: "Ticket no encontrado en el sistema"
+          );
+        }
+
+        // Convertimos la data a nuestro modelo
+        final ticket = TicketModel.fromMap(snapshot.data()!, snapshot.id);
+
+        // CASO A: SI YA FUE USADO
+        if (ticket.isUsed) {
+          return ValidationResult(
+            status: TicketValidationStatus.alreadyUsed,
+            ticket: ticket,
+            message: "¡ALERTA! Este ticket ya fue utilizado.",
+          );
+        }
+
+        // CASO B: SI ES VÁLIDO Y NUEVO -> LO MARCAMOS COMO USADO
+        transaction.update(docRef, {
+          'isUsed': true,
+          'usedAt': FieldValue.serverTimestamp(), // Guardamos la hora exacta del escaneo
+        });
+
+        // Devolvemos el resultado de éxito
+        return ValidationResult(
+          status: TicketValidationStatus.valid,
+          ticket: ticket,
+          message: "Ticket válido. Pase autorizado.",
+        );
+      });
+
+    } catch (e) {
+      // Cualquier otro error técnico (sin internet, permisos, etc.)
+      return ValidationResult(
+        status: TicketValidationStatus.error, 
+        message: "Error técnico validando ticket: $e"
+      );
+    }
   }
 }

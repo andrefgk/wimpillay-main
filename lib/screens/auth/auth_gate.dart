@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wimpillay_main/screens/auth/login_screen.dart';
+import 'package:wimpillay_main/screens/driver/driver_home.dart'; // Importa el home del conductor
 import 'package:wimpillay_main/screens/passenger/passenger_home.dart';
+import 'package:wimpillay_main/utils/styles.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -9,24 +12,59 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      // Escucha constantemente el estado de autenticación
+      // 1. Escuchamos si hay usuario de Firebase Auth
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Si está cargando, muestra un spinner
+        // Estado de carga inicial de Auth
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // Si el usuario ESTÁ logueado (snapshot tiene datos)
+        // Si hay usuario logueado...
         if (snapshot.hasData) {
-          // Lo mandamos al Home de Pasajero
-          return const PassengerHome();
+          final User user = snapshot.data!;
+
+          // 2. Escuchamos los cambios en el documento del usuario en Firestore (Roles)
+          return StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .snapshots(),
+            builder: (context, userSnapshot) {
+              
+              // Mientras carga los datos de Firestore
+              if (userSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryGreenLight,
+                    ),
+                  ),
+                );
+              }
+
+              // Si tenemos datos del usuario
+              if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                final String role = userData['role'] ?? 'passenger';
+
+                // 3. DECISIÓN DE RUTAS
+                if (role == 'driver') {
+                  return const DriverHome();
+                } else {
+                  return const PassengerHome();
+                }
+              }
+
+              // Si hay error o no hay datos, por defecto al pasajero (o pantalla de error)
+              return const PassengerHome();
+            },
+          );
         }
 
-        // Si el usuario NO está logueado
-        // Lo mandamos a la pantalla de Login
+        // Si NO hay usuario logueado -> Login
         return const LoginScreen();
       },
     );
