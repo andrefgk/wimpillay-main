@@ -40,6 +40,26 @@ class TicketService {
     return await _firebaseService.saveTicket(ticket);
   }
 
+  // Obtener tickets del usuario en tiempo real
+  Stream<List<TicketModel>> getUserTickets(String userId) {
+    return _db
+        .collection('tickets')
+        .where('userId', isEqualTo: userId)
+        // Nota: Ordenar en Firestore requiere crear un índice compuesto.
+        // Para evitar complicaciones ahora, ordenaremos en la app (Dart).
+        .snapshots()
+        .map((snapshot) {
+          final tickets = snapshot.docs
+              .map((doc) => TicketModel.fromMap(doc.data(), doc.id))
+              .toList();
+          
+          // Ordenamos aquí: Los más recientes primero
+          tickets.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
+          return tickets;
+        });
+  }
+
+
   // --- NUEVA LÓGICA DE VALIDACIÓN ---
   Future<ValidationResult> validateTicket(String qrCodeData) async {
     try {

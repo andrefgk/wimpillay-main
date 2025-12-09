@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:wimpillay_main/screens/auth/auth_gate.dart';
 import 'firebase_options.dart';
 import 'package:wimpillay_main/utils/styles.dart';
-
+import 'screens/passenger/passenger_tickets_screen.dart'; 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -104,6 +104,10 @@ class MyApp extends StatelessWidget {
       // --- Fin del Tema ---
       
       home: const AuthGate(),
+
+      routes: {
+        '/passenger-tickets': (context) => const PassengerTicketsScreen(),
+      },
     );
   }
 }

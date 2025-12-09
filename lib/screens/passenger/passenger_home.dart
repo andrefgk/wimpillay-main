@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wimpillay_main/models/ticket_model.dart';
 import 'package:wimpillay_main/services/ticket_service.dart';
 import 'package:wimpillay_main/screens/passenger/ticket_screen.dart';
-// ¡IMPORTAMOS AUTH_SERVICE!
 import 'package:wimpillay_main/screens/auth/auth_service.dart';
 
 class PassengerHome extends StatefulWidget {
@@ -27,8 +26,6 @@ class _PassengerHomeState extends State<PassengerHome> {
 
   final TicketService _ticketService = TicketService();
   final user = FirebaseAuth.instance.currentUser;
-
-  // ¡INSTANCIA DE AUTHSERVICE!
   final AuthService _authService = AuthService();
 
   Future<void> _confirmAndCreateTicket() async {
@@ -63,7 +60,7 @@ class _PassengerHomeState extends State<PassengerHome> {
         ),
       );
       setState(() {
-        adult = 1;
+        adult = 0; // Reiniciar a 1 adulto por defecto (opcional)
         university = 0;
         school = 0;
       });
@@ -76,69 +73,12 @@ class _PassengerHomeState extends State<PassengerHome> {
     }
   }
 
-  Widget _buildCounter({
-    required String label,
-    required double price,
-    required int value,
-    required VoidCallback onAdd,
-    required VoidCallback onRemove,
-  }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      // ... (El resto del widget de contador no cambia)
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.bold)),
-                Text('S/. ${price.toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 14)),
-              ],
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline,
-                      color: Colors.red, size: 28),
-                  onPressed: onRemove,
-                ),
-                Text(
-                  '$value',
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline,
-                      color: Colors.green, size: 28),
-                  onPressed: onAdd,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
   void _signOut() async {
-    // Simplemente llamamos al servicio de cerrar sesión.
-    // AuthGate se encargará de la navegación.
     await _authService.signOut();
   }
-  // --- FIN DE LA CORRECIÓN ---
 
   @override
   Widget build(BuildContext context) {
-    // Usamos el Tema Oscuro que definimos
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -149,10 +89,21 @@ class _PassengerHomeState extends State<PassengerHome> {
         elevation: 0,
         centerTitle: true,
         actions: [
+          // --- NUEVO BOTÓN: MIS TICKETS ---
+          IconButton(
+            icon: const Icon(Icons.confirmation_number), // Ícono de ticket
+            tooltip: 'Mis Tickets',
+            onPressed: () {
+              // Navegamos a la ruta que crearemos en el siguiente paso
+              Navigator.pushNamed(context, '/passenger-tickets');
+            },
+          ),
+          // --- FIN NUEVO BOTÓN ---
+          
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',
-            onPressed: _signOut, // Llama a la nueva función _signOut
+            onPressed: _signOut,
           )
         ],
       ),
@@ -173,9 +124,6 @@ class _PassengerHomeState extends State<PassengerHome> {
                   ?.copyWith(color: theme.textTheme.bodySmall?.color),
             ),
             const SizedBox(height: 12),
-            
-            // --- Adaptamos los contadores al tema oscuro ---
-            // (Esta parte es visual, la lógica es la misma)
             _buildCounterDark(
               label: 'Adultos',
               price: adultPrice,
@@ -205,10 +153,7 @@ class _PassengerHomeState extends State<PassengerHome> {
                 if (school > 0) setState(() => school--);
               },
             ),
-            // --- Fin de widgets insertados ---
-
             const SizedBox(height: 20),
-            
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               decoration: BoxDecoration(
@@ -235,7 +180,6 @@ class _PassengerHomeState extends State<PassengerHome> {
               ),
             ),
             const Spacer(),
-            
             _isProcessing
                 ? const Center(child: CircularProgressIndicator())
                 : SizedBox(
@@ -256,7 +200,6 @@ class _PassengerHomeState extends State<PassengerHome> {
     );
   }
 
-  // Widget de contador adaptado al tema oscuro
   Widget _buildCounterDark({
     required String label,
     required double price,
@@ -284,8 +227,8 @@ class _PassengerHomeState extends State<PassengerHome> {
                         fontWeight: FontWeight.bold,
                         color: theme.textTheme.bodyLarge?.color)),
                 Text('S/. ${price.toStringAsFixed(2)}',
-                    style:
-                        TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 14)),
+                    style: TextStyle(
+                        color: theme.textTheme.bodySmall?.color, fontSize: 14)),
               ],
             ),
             Row(
